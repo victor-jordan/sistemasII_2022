@@ -3,7 +3,11 @@
 Controlador de la tabla auditoria para todas las operaciones
 y eventos en las tablas
 */
-require_once('ctrl_auditoria.php');
+// set_include_path(dirname(dirname(__FILE__)).'/lib'.PATH_SEPARATOR.get_include_path());
+
+
+// require('FirePHPCore/fb.php');
+require_once('ctrl_conexion.php');
 require_once(__DIR__.'\..\modelos\mdl_auditoria.php');
 
 class ctrlAuditoria{
@@ -23,6 +27,7 @@ class ctrlAuditoria{
                 $instanciaAuditoria->fecha = $registro['fecha'];
                 $instanciaAuditoria->tabla = $registro['tabla'];
                 $instanciaAuditoria->accion = $registro['accion'];
+                $instanciaAuditoria->usuario = $registro['usuario'];
                 $this->auditorias[] = $instanciaAuditoria;
                 $instanciaAuditoria = new mdlAuditoria();
             }
@@ -38,10 +43,11 @@ class ctrlAuditoria{
             $base_datos = new ctrlConexion();
             $conexion = $base_datos->getConexion();
 
-            $sentencia = "INSERT INTO auditoria (fecha, tabla, accion) VALUES ('%s', '%s', '%s'),";
-            echo $sentencia;
+            $sentencia = "INSERT INTO auditoria (fecha, tabla, accion, usuario) VALUES ('%s', '%s', '%s', %d);";
         try{
-            $ejecutar = sprintf($sentencia, $objeto->fecha, $objeto->tabla, $objeto->accion);
+            $ejecutar = sprintf($sentencia, $objeto->fecha, $objeto->tabla, $objeto->accion, $objeto->usuario);
+
+            // fb($ejecutar, FirePHP::INFO);
 
             // Usamos la caracteristica de transact SQL
             $conexion->beginTransaction();
@@ -50,6 +56,7 @@ class ctrlAuditoria{
         } catch (PDOException $e){
             // si algo falla mostramos el error
             echo "Falló algo: ".$e->getMessage();
+            // fb("Falló algo: ".$e->getMessage(), FirePHP::ERROR);
         }
     }
 }

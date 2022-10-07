@@ -7,24 +7,30 @@ $ctrlUsuarios = new ctrlUsuario();
 $ctrlUsuarios->obtenerTodos();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $accion = $_POST['accion'];
     $usuario = new mdlUsuario();
-
     $usuario->username = limpiarDatos($_POST['username']);
     $usuario->nombre = limpiarDatos($_POST['nombre']);
     $usuario->apellido = limpiarDatos($_POST['apellido']);
+    
     if (isset($_POST['activo'])) {
         $usuario->activo = true;
     } else{
         $usuario->activo = false;
     }
 
-    if ($_POST['accion'] == 'insertar') {
+    if ($accion == 'insertar') {
         $usuario->password = limpiarDatos($_POST['password']);
-        $resultado = $ctrlUsuarios->insertarUsuario($usuario);
     } else {
         $usuario->id = limpiarDatos($_POST['id']);
-        $resultado = $ctrlUsuarios->modificarUsuario($usuario);
     }
+
+    if($accion != 'eliminar'){
+        $resultado = $ctrlUsuarios->upsertUsuario($usuario, $accion);
+    } else{
+        $resultado = $ctrlUsuarios->eliminarUsuario($usuario);
+    }
+
 }
 ?>
 <!DOCTYPE html>
@@ -32,11 +38,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="utf-8">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/mvp.css/1.6.3/mvp.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" integrity="sha512-5A8nwdMOWrSz20fDsjczgUidUBR8liPYU+WymTZP1lmY9G6Oc7HlZv156XqnsgNUzTyMefFTcsFH/tnJE/+xBg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Vista Usuarios</title>
     <style>
+        button.registro{
+            font-size: 70%;
+            width: 20%;
+            height: 20%;
+        }
         #mensaje{
             background-color: red;
-            float: right;
+            position: relative;
         }
         #formulario{
             float: left;
@@ -53,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <?php
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo $resultado;
-        header("Refresh:5");
+        header("Refresh:3");
     }
 ?>
     </div>
@@ -71,16 +83,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <button id="boton_accion">Insertar</button>
         </form>
     </div>
+
     <div id="lista">
     <h1>Listado de Usuarios</h1>
     <table>
         <thead>
-            <tr><th>id</th><th>username</th><th>nombre</th><th>apellido</th><th>activo</th></tr>
+            <tr><th>id</th><th>username</th><th>nombre</th><th>apellido</th><th>activo</th><th>accion</th></tr>
         </thead>
         <tbody>
 <?php
     foreach($ctrlUsuarios -> usuarios as $usuario){
-        echo "<tr onclick='javascript:llenarForm(this);'><td>{$usuario->id}</td><td>{$usuario->username}</td><td>{$usuario->nombre}</td><td>{$usuario->apellido}</td><td>".(($usuario -> activo) ? "✓" : "✗")."<span style='display:none;'>".(($usuario -> activo) ? "1" : "0")."</span></td></tr>";
+        echo "<tr><td>{$usuario->id}</td><td>{$usuario->username}</td><td>{$usuario->nombre}</td><td>{$usuario->apellido}</td><td>".(($usuario -> activo) ? "✓" : "✗")."<span style='display:none;'>".(($usuario -> activo) ? "1" : "0")."</span></td><td><button class='registro' onclick='javascript:eliminarRegistro(this.parentElement.parentElement)'><i class='fa fa-trash-o' aria-hidden='true' title='Borrar'></i></button></form><button class='registro' onclick='javascript:llenarForm(this.parentElement.parentElement);'><i class='fa fa-pencil' aria-hidden='true' title='Editar'></i></i></button></td></tr>";
     }
     $ctrlUsuarios = null;
 ?>
@@ -104,6 +117,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         document.getElementById('accion').value = "modificar";
         document.getElementById('boton_accion').innerHTML = "Modificar";
         document.getElementById('titulo_formulario').innerHTML = "Modificar Usuario Nº " + fila[0].innerHTML;
+    }
+</script>
+<script type="text/javascript">
+    function eliminarRegistro(row){
+        var fila=row.cells;
+        $.post(".", {identificador: fila[0].innerHTML, username: fila[1].innerHTML, nombre: fila[2].innerHTML, apellido: fila[3].innerHTML});
     }
 </script>
 </body>

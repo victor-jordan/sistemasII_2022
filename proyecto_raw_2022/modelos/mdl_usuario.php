@@ -7,8 +7,13 @@ class mdlUsuario{
     var $apellido;
     var $activo;
 
+
     public function nombreCompleto(){
         return "{$this->nombre} {$this->apellido}";
+    }
+
+    public function __toString() {
+       return "(".$this->id.") ".$this->username;
     }
 }
 ?>

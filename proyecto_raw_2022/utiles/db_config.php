@@ -1,7 +1,7 @@
 <?php
 // Datos del servidor de base de datos
-$servidor = "localhost";
-$usuario = "root";
-$clave = "";
-$bdnombre = "colegio";
+$srv = "localhost";
+$usr = "root";
+$clv = "";
+$bdn = "colegio";
 ?>
